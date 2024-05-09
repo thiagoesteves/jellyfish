@@ -4,7 +4,7 @@ defmodule Jellyfish.MixProject do
   def project do
     [
       app: :jellyfish,
-      version: "0.1.0",
+      version: "0.1.1",
       elixir: "~> 1.16",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -30,12 +30,12 @@ defmodule Jellyfish.MixProject do
   defp package do
     [
       files: ["lib", "priv", "mix.exs", "README.md", "LICENSE.md", ".formatter.exs"],
-      maintainers: ["Paul Schoenfelder"],
+      maintainers: ["Thiago Esteves", "Matthew Galvin"],
       licenses: ["MIT"],
       links: %{
-        Documentation: "https://hexdocs.pm/distillery",
-        Changelog: "https://hexdocs.pm/distillery/changelog.html",
-        GitHub: "https://github.com/bitwalker/distillery"
+        Documentation: "https://hexdocs.pm/jellyfish",
+        Changelog: "https://hexdocs.pm/jellyfish/changelog.html",
+        GitHub: "https://github.com/bitwalker/jellyfish"
       }
     ]
   end

@@ -19,7 +19,7 @@ defmodule Mix.Tasks.Compile.Appup do
     app_name = Mix.Project.config()[:app]
 
     with [file] <- Path.wildcard("rel/appups/#{app_name}/*_to_#{version}.appup") do
-      dst = Path.join(Mix.Project.compile_path(), "holidex.appup")
+      dst = Path.join(Mix.Project.compile_path(), "#{app_name}.appup")
 
       edit_appup? = System.get_env("EDIT_APPUP")
 
