@@ -16,7 +16,7 @@ by adding `jellyfish` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:jellyfish, "~> 0.1.0"}
+    {:jellyfish, "~> 0.1.1"}
   ]
 end
 ```
