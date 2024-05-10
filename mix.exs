@@ -4,7 +4,7 @@ defmodule Jellyfish.MixProject do
   def project do
     [
       app: :jellyfish,
-      version: "0.1.1",
+      version: "0.1.2",
       elixir: "~> 1.16",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -35,7 +35,7 @@ defmodule Jellyfish.MixProject do
       links: %{
         Documentation: "https://hexdocs.pm/jellyfish",
         Changelog: "https://hexdocs.pm/jellyfish/changelog.html",
-        GitHub: "https://github.com/bitwalker/jellyfish"
+        GitHub: "https://github.com/thiagoesteves/jellyfish"
       }
     ]
   end
