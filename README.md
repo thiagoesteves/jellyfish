@@ -39,6 +39,10 @@ You also need to add the following lines in the mix project
 
 Once the mix release file is generated, it will contain all the appup/release files to execute a hot-upgrade or full deployment.
 
+# Relup file
+
+The library focuses on generating appup files and including them in the mix release package. It doesn't create relup files directly. If for any reason you need to change the order of the modules in the appup output, you can untar the release, do the changes in the appup files and tar it again. The relup file is typically created during a hot upgrade with the [Deployex](https://github.com/thiagoesteves/deployex) application.
+
 # Examples
 
 Explore [Deployex](https://github.com/thiagoesteves/deployex), an Elixir application showcasing Jellyfish's capabilities in deployment with hot-upgrades.
