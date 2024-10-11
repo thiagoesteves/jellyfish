@@ -1,11 +1,16 @@
 defmodule Jellyfish.MixProject do
   use Mix.Project
 
+  @version "0.1.4"
+
   def project do
     [
       app: :jellyfish,
-      version: "0.1.3",
+      version: @version,
       elixir: "~> 1.16",
+      name: "Jellyfish",
+      source_url: "https://github.com/thiagoesteves/jellyfish",
+      homepage_url: "https://github.com/thiagoesteves/jellyfish",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       docs: docs(),
@@ -29,7 +34,15 @@ defmodule Jellyfish.MixProject do
 
   defp package do
     [
-      files: ["lib", "priv", "mix.exs", "README.md", "LICENSE.md", ".formatter.exs"],
+      files: [
+        "lib",
+        "priv",
+        "mix.exs",
+        "README.md",
+        "LICENSE.md",
+        "CHANGELOG.md",
+        ".formatter.exs"
+      ],
       maintainers: ["Thiago Esteves", "Matthew Galvin"],
       licenses: ["MIT"],
       links: %{
@@ -42,16 +55,16 @@ defmodule Jellyfish.MixProject do
 
   defp docs do
     [
-      source_url: "https://github.com/thiagoesteves/jellyfish",
-      homepage_url: "https://github.com/thiagoesteves/jellyfish",
-      main: "home"
+      main: "Jellyfish",
+      source_ref: "v#{@version}",
+      extras: ["README.md", "LICENSE.md", "CHANGELOG.md"]
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ex_doc, "~> 0.18", only: :dev}
+      {:ex_doc, "~> 0.34", only: [:dev, :test], runtime: false}
     ]
   end
 end
