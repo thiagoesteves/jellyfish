@@ -1,6 +1,6 @@
 defmodule Jellyfish.Releases.Appups do
   @moduledoc """
-  This module is responsible for generating appups between two releases.
+  Generate appup files for hot upgrades
 
   Copied and/or modified from https://github.com/bitwalker/distillery/blob/master/lib/distillery/releases/appups.ex
   """

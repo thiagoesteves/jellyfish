@@ -1,6 +1,6 @@
-defmodule Mix.Tasks.Compile.Appup do
+defmodule Mix.Tasks.Compile.CopyAppup do
   @moduledoc """
-  This module is responsible for generating appups between two releases.
+  This Mix task copies the appup and Jellyfish metadata files to their respective release directories.
 
   Copied/modified from https://preview.hex.pm/preview/forecastle/0.1.2/show/lib/mix/tasks/compile/appup.ex
   """
@@ -8,6 +8,8 @@ defmodule Mix.Tasks.Compile.Appup do
   use Mix.Task.Compiler
 
   require Logger
+
+  @recursive true
 
   @impl true
   @spec run(any()) :: :ok | {:error, [Mix.Task.Compiler.Diagnostic.t(), ...]}
@@ -18,8 +20,11 @@ defmodule Mix.Tasks.Compile.Appup do
     version = Mix.Project.config()[:version]
     app_name = Mix.Project.config()[:app]
 
-    with [file] <- Path.wildcard("rel/appups/#{app_name}/*_to_#{version}.appup") do
-      dst = Path.join(Mix.Project.compile_path(), "#{app_name}.appup")
+    appup_source = "rel/appups/#{app_name}"
+
+    with [appup_file] <- Path.wildcard("#{appup_source}/*_to_#{version}.appup"),
+         [jellyfish_file] <- Path.wildcard("#{appup_source}/jellyfish.json") do
+      destination_dir = Mix.Project.compile_path()
 
       edit_appup? = System.get_env("EDIT_APPUP")
 
@@ -29,11 +34,14 @@ defmodule Mix.Tasks.Compile.Appup do
         )
 
         IO.gets(
-          "Press any key when you're done editing #{IO.ANSI.magenta()}#{file}\n#{IO.ANSI.cyan()}------------------------------------------------------------------------------\n"
+          "Press any key when you're done editing #{IO.ANSI.magenta()}#{appup_file}\n#{IO.ANSI.cyan()}------------------------------------------------------------------------------\n"
         )
       end
 
-      File.copy(file, dst)
+      File.copy(appup_file, "#{destination_dir}/#{app_name}.appup")
+
+      File.copy(jellyfish_file, "#{destination_dir}/jellyfish.json")
+
       :ok
     else
       [] = _appups ->

@@ -24,3 +24,6 @@ jellyfish-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# Ignore .tool-versions file
+.tool-versions
