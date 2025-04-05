@@ -79,11 +79,14 @@ defmodule Jellyfish.MixProject do
   defp aliases do
     [
       release: [
-        "mix do deps.get, compile --warnings-as-errors",
         "cmd git tag v#{@version} -f",
         "cmd git push",
         "cmd git push --tags",
         "hex.publish --yes"
+      ],
+      "test.ci": [
+        "format --check-formatted",
+        "deps.unlock --check-unused"
       ]
     ]
   end
