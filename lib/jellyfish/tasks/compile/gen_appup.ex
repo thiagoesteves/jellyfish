@@ -1,6 +1,6 @@
 defmodule Mix.Tasks.Compile.GenAppup do
   @moduledoc """
-  Generate appup files for hot upgrades
+  Locate previous versions and triggers the appup files generation for hot upgrades
 
   Copied/modified from https://github.com/bitwalker/distillery/blob/master/lib/distillery/tasks/gen.appup.ex
 
@@ -20,26 +20,31 @@ defmodule Mix.Tasks.Compile.GenAppup do
 
   @impl true
   @spec run(term()) :: no_return
-  def run(_args) do
+  def run(args) do
     # make sure loadpaths are updated
     Mix.Task.run("loadpaths", [])
 
     app_name = Mix.Project.config()[:app]
+    build_path = Mix.Project.config()[:build_path]
+    release_name = Keyword.fetch!(args, :release_name)
 
     opts = %{
       app: app_name,
       upgrade_from: :latest,
-      output_dir: "_build/#{Mix.env()}/rel/#{app_name}/"
+      output_dir: "#{build_path}/#{Mix.env()}/rel/#{release_name}/"
     }
 
     case do_gen_appup(opts) do
-      :ok ->
-        IO.puts(
-          "You can find your generated appups in rel/appups/#{app_name}/ with the .appup extension"
+      {:ok, %{versions: versions, current: current, appup: false}} ->
+        Mix.shell().info(" versions: #{inspect(versions)} current: #{current} - No appups")
+
+      {:ok, %{versions: versions, current: current, appup: true}} ->
+        Mix.shell().info(
+          " versions: #{inspect(versions)} current: #{current} - appups: #{app_name}/rel/appups/"
         )
 
-      {:error, _} ->
-        IO.puts("No appups, nothing to move to the release")
+      {:error, reason} ->
+        Mix.shell().info(" error checking appup files reason: #{inspect(reason)}")
     end
   end
 
@@ -68,7 +73,7 @@ defmodule Mix.Tasks.Compile.GenAppup do
     v2_path = Application.app_dir(app)
 
     # Look for app versions in release directory
-    available_versions =
+    all_versions =
       Path.join([output_dir, "lib", "#{app}-*"])
       |> Path.wildcard()
       |> Enum.map(fn appdir ->
@@ -84,24 +89,27 @@ defmodule Mix.Tasks.Compile.GenAppup do
         {version, appdir}
       end)
       |> Map.new()
-      |> Map.delete(v2)
+
+    previous_version = Map.delete(all_versions, v2)
 
     sorted_versions =
-      available_versions
+      previous_version
       |> Map.keys()
       |> sort_versions()
 
-    if map_size(available_versions) == 0 do
-      {:error, "No previous releases exist"}
+    if map_size(previous_version) == 0 do
+      # NOTE: No previous releases exist
+      {:ok, %{versions: Map.keys(all_versions), current: v2, appup: false}}
     else
       {v1, v1_path} =
         case opts[:upgrade_from] do
           :latest ->
             version = List.first(sorted_versions)
-            {version, Map.fetch!(available_versions, version)}
+            IO.inspect(version)
+            {version, Map.fetch!(previous_version, version)}
 
           version ->
-            case Map.get(available_versions, version) do
+            case Map.get(previous_version, version) do
               nil ->
                 System.halt(1)
 
@@ -115,9 +123,22 @@ defmodule Mix.Tasks.Compile.GenAppup do
           err
 
         {:ok, appup} ->
-          appup_path = Path.join(["rel", "appups", "#{app}", "#{v1}_to_#{v2}.appup"])
-          File.mkdir_p!(Path.dirname(appup_path))
-          :ok = write_term(appup_path, appup)
+          dir_path = Path.join(["rel", "appups", "#{app}"])
+
+          deployex_file =
+            """
+            {
+              "name": "#{app}",
+              "from": "#{v1}",
+              "to": "#{v2}"
+            }
+            """
+
+          File.mkdir_p!(dir_path)
+          :ok = write_term("#{dir_path}/#{v1}_to_#{v2}.appup", appup)
+          File.write!("#{dir_path}/jellyfish.json", deployex_file)
+
+          {:ok, %{versions: Map.keys(all_versions), current: v2, appup: true}}
       end
     end
   end

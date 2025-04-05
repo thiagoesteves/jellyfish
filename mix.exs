@@ -1,7 +1,7 @@
 defmodule Jellyfish.MixProject do
   use Mix.Project
 
-  @version "0.1.4"
+  @version "0.2.0"
 
   def project do
     [
@@ -9,9 +9,11 @@ defmodule Jellyfish.MixProject do
       version: @version,
       elixir: "~> 1.16",
       name: "Jellyfish",
+      description: "Elixir library able to generate appup files for hot code reloading",
       source_url: "https://github.com/thiagoesteves/jellyfish",
       homepage_url: "https://github.com/thiagoesteves/jellyfish",
       start_permanent: Mix.env() == :prod,
+      aliases: aliases(),
       deps: deps(),
       docs: docs(),
       package: package(),
@@ -65,6 +67,24 @@ defmodule Jellyfish.MixProject do
   defp deps do
     [
       {:ex_doc, "~> 0.34", only: [:dev, :test], runtime: false}
+    ]
+  end
+
+  # Aliases are shortcuts or tasks specific to the current project.
+  # For example, to install project dependencies and perform other setup tasks, run:
+  #
+  #     $ mix setup
+  #
+  # See the documentation for `Mix` for more info on aliases.
+  defp aliases do
+    [
+      release: [
+        "mix do deps.get, compile --warnings-as-errors",
+        "cmd git tag v#{@version} -f",
+        "cmd git push",
+        "cmd git push --tags",
+        "hex.publish --yes"
+      ]
     ]
   end
 end
