@@ -25,8 +25,8 @@ defmodule Mix.Tasks.Compile.GenAppup do
     Mix.Task.run("loadpaths", [])
 
     app_name = Mix.Project.config()[:app]
-    build_path = Mix.Project.config()[:build_path]
-    release_name = Keyword.fetch!(args, :release_name)
+    build_path = Mix.Project.config()[:build_path] || "./_build"
+    release_name = Keyword.get(args, :release_name, app_name)
 
     opts = %{
       app: app_name,
@@ -105,7 +105,6 @@ defmodule Mix.Tasks.Compile.GenAppup do
         case opts[:upgrade_from] do
           :latest ->
             version = List.first(sorted_versions)
-            IO.inspect(version)
             {version, Map.fetch!(previous_version, version)}
 
           version ->
