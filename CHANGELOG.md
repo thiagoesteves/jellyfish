@@ -1,9 +1,9 @@
 # CHANGELOG (v0.2.x)
 
-## 0.2.0 (2025-04-05)
+## 0.2.1 🚀 (2025-04-07)
 
-### Backwards incompatible changes for 0.1.4
- * From version 0.2.x Jellyfish creates a metadata that will be consumed for hotupgrade, allowing elixir umbrella apps to support hot-upgrade.
+### Backwards incompatible changes for 0.2.0
+ * None
 
 ### Installer Actions
  * None
@@ -12,7 +12,8 @@
  * None
 
 ### Enhancements
- * Added support for Elixir umbrella applications
+ * Improved documentation
 
-# Previous Releases
- * [0.1.4 🚀 (2024-10-10)](https://github.com/thiagoesteves/jellyfish/blob/0.1.4/CHANGELOG.md)
+# 🚀 Previous Releases
+ * [0.2.0 (2025-04-05)](https://github.com/thiagoesteves/jellyfish/blob/v0.2.0/CHANGELOG.md)
+ * [0.1.4 (2024-10-10)](https://github.com/thiagoesteves/jellyfish/blob/0.1.4/CHANGELOG.md)

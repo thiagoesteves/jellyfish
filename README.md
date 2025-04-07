@@ -30,7 +30,7 @@ You also need to add the following line in the mix project
       ...
       releases: [
         your_app_name: [
-          steps: [:assemble, &Jellyfish.Releases.Copy.appup_files/1, :tar]
+          steps: [:assemble, &Jellyfish.Releases.Generate.appup_files/1, :tar]
         ]
       ],
       ...
@@ -94,8 +94,7 @@ defmodule Myumbrella.MixProject do
 
       defp deps do
     [
-      {:jellyfish,
-       github: "thiagoesteves/jellyfish", ref: "9aaec1bd70176cf11f72b42921ecc85412c4ca7b"}
+      {:jellyfish, "~> 0.2.0"}
     ]
   end
 end
@@ -103,7 +102,10 @@ end
 
 Each application within the umbrella should reference the same version file:
 
-Child App Mix File Setup
+> #### Child App Mix File Setup
+>
+> Jellyfish dependency is not required for the child apps
+
 ```Elixir
 defmodule App1.MixProject do
   use Mix.Project
@@ -121,10 +123,9 @@ defmodule App1.MixProject do
 end
 ```
 
-
 ## Generating Appup files
 
-When building releases for hot code upgrades in umbrella applications, there's a known issue where the first release call after a version change doesn't properly update all the applications within the umbrella. This can result in missing or incorrect appup files. For proper appup file generation, follow these steps:
+When building releases for hot code upgrades in umbrella applications, there's a known issue where the first release call after a version change doesn't properly update all the applications within the umbrella. This can result in missing files. For proper appup file generation, follow these steps:
 
 1. Build the initial release:
 ```bash
@@ -145,7 +146,7 @@ MIX_ENV=prod mix release
 Explore these resources for practical examples of using Jellyfish with Elixir applications:
 
  * [Deployex](https://github.com/thiagoesteves/deployex) - Elixir application showcasing Jellyfish's capabilities in deployment with hot-upgrades.
- * [Deployex](https://github.com/thiagoesteves/calori) - Elixir application using Jellyfish and being able to hot upgrade via DeployEx
+ * [Calori](https://github.com/thiagoesteves/calori) - Elixir application using Jellyfish and being able to hot upgrade via DeployEx
  * [Myumbrella](https://github.com/thiagoesteves/myumbrella) - Elixir umbrella application configured for using Jellyfish.
 
 ## Getting involved
