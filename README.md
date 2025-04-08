@@ -30,7 +30,7 @@ You also need to add the following line in the mix project
       ...
       releases: [
         your_app_name: [
-          steps: [:assemble, &Jellyfish.Releases.Generate.appup_files/1, :tar]
+          steps: [:assemble, &Jellyfish.generate/1, :tar]
         ]
       ],
       ...
@@ -83,11 +83,7 @@ defmodule Myumbrella.MixProject do
             app_2: :permanent,
             app_web: :permanent
           ],
-          steps: [
-            :assemble,
-            &Jellyfish.Releases.Generate.appup_files/1,
-            :tar
-          ]
+          steps: [:assemble, &Jellyfish.generate/1, :tar]
         ]
       ]
     ]

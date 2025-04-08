@@ -4,7 +4,7 @@ defmodule Mix.Tasks.Compile.CopyAppup do
 
   Copied/modified from https://preview.hex.pm/preview/forecastle/0.1.2/show/lib/mix/tasks/compile/appup.ex
   """
-  @shortdoc "Compiles appup files"
+  @shortdoc "Copying appup/jellyfish files to the release folder"
   use Mix.Task.Compiler
 
   require Logger
@@ -13,18 +13,20 @@ defmodule Mix.Tasks.Compile.CopyAppup do
 
   @impl true
   @spec run(any()) :: :ok | {:error, [Mix.Task.Compiler.Diagnostic.t(), ...]}
-  def run(_args) do
+  def run(args) do
     # make sure loadpaths are updated
     Mix.Task.run("loadpaths", [])
 
     version = Mix.Project.config()[:version]
     app_name = Mix.Project.config()[:app]
 
+    release_path = Keyword.fetch!(args, :release_path)
+
     appup_source = "rel/appups/#{app_name}"
 
     with [appup_file] <- Path.wildcard("#{appup_source}/*_to_#{version}.appup"),
          [jellyfish_file] <- Path.wildcard("#{appup_source}/jellyfish.json") do
-      destination_dir = Mix.Project.compile_path()
+      destination_dir = "#{release_path}/lib/#{app_name}-#{version}/ebin"
 
       edit_appup? = System.get_env("EDIT_APPUP")
 
