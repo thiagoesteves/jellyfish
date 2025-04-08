@@ -1,18 +1,18 @@
 # CHANGELOG (v0.2.x)
 
-## 0.2.1 🚀 (2025-04-07)
+## 0.2.2 🚀 (2025-04-08)
 
-### Backwards incompatible changes for 0.2.0
+### Backwards incompatible changes for 0.2.1
  * None
 
 ### Installer Actions
  * None
 
 ### Bug fixes
- * None
+ * Fixing bug that was not copying the appup files to the release folder
 
 ### Enhancements
- * Improved documentation
+ * None
 
 # 🚀 Previous Releases
  * [0.2.0 (2025-04-05)](https://github.com/thiagoesteves/jellyfish/blob/v0.2.0/CHANGELOG.md)

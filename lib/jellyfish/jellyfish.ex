@@ -1,6 +1,28 @@
 defmodule Jellyfish do
   @moduledoc """
-  Jellyfish is a library designed to streamline the management of appup
-  and release files, enabling hot-upgrades for Elixir applications.
+  This module is responsible for generating appup/jellyfish files and moving it to the release folder.
   """
+
+  @spec generate(Mix.Release.t()) :: Mix.Release.t()
+  def generate(%Mix.Release{name: name, version: vsn, path: path, version_path: vp} = release) do
+    Mix.shell().info([
+      :green,
+      "* hot-upgrade ",
+      :reset,
+      "Checking if previous versions are available"
+    ])
+
+    Mix.Task.run("compile.gen_appup", release_name: name)
+    Mix.Task.run("compile.copy_appup", release_path: path)
+
+    rel_source = Path.join(vp, "#{name}.rel")
+    rel_dest = Path.join([path, "releases", "#{name}-#{vsn}.rel"])
+
+    message = "copying release file to #{rel_dest}"
+    Mix.shell().info([:green, "* hot-upgrade ", :reset, message])
+
+    File.cp!(rel_source, rel_dest)
+
+    release
+  end
 end
