@@ -61,7 +61,73 @@ The next sections describe how to set up and use Jellyfish with Elixir umbrella 
 
 ## Versioning
 
-Elixir umbrella applications contain multiple apps with multiple `mix.exs` files and versions. Jellyfish expects a single version for the entire umbrella application, so it's important to ensure the same version is used across all apps. The recommended approach is to use a `version.txt` file at the root of your umbrella project.
+Elixir umbrella applications contain multiple apps, each with its own `mix.exs` file and version. However, Jellyfish expects a single consistent version for the entire umbrella application. To ensure version consistency across all apps, we recommend two approaches:"
+
+### Versioning using a shared mix config
+
+Create a new file `mix/shared.exs` at the root of your umbrella project and add the following code:
+```Elixir
+defmodule Mix.Shared do
+  def version, do: "0.1.0"
+end
+```
+
+Add the load of this file in the root Mix File Setup:
+```Elixir
+Code.require_file("mix/shared.exs")
+
+defmodule Myumbrella.MixProject do
+  use Mix.Project
+
+  def project do
+    [
+      apps_path: "apps",
+      version: Mix.Shared.version(),
+      start_permanent: Mix.env() == :prod,
+      deps: deps(),
+      releases: [
+        myumbrella: [
+          applications: [
+            app_1: :permanent,
+            app_2: :permanent,
+            app_web: :permanent
+          ],
+          steps: [:assemble, &Jellyfish.generate/1, :tar]
+        ]
+      ]
+    ]
+
+  defp deps do
+    [
+      {:jellyfish, "~> 0.2.0"}
+    ]
+  end
+end
+```
+
+Each application within the umbrella should reference the same version file:
+
+> #### Child App Mix File Setup
+>
+> Jellyfish dependency is not required for the child apps
+
+```Elixir
+defmodule App1.MixProject do
+  use Mix.Project
+
+  def project do
+    [
+      app: :app_1,
+      version: Mix.Shared.version(),
+      # Other configuration...
+    ]
+  end
+  # Rest of the mix file...
+end
+```
+
+### Versioning using a text file
+Create a new file `version.txt` at the root of your umbrella project.
 
 Root Mix File Setup:
 ```Elixir
