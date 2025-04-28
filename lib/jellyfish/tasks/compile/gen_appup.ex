@@ -1,17 +1,9 @@
 defmodule Mix.Tasks.Compile.GenAppup do
   @moduledoc """
-  Locate previous versions and triggers the appup files generation for hot upgrades
-
-  Copied/modified from https://github.com/bitwalker/distillery/blob/master/lib/distillery/tasks/gen.appup.ex
-
-  The generated appup will be written to `rel/appups/<app>/<from>_to_<to>.appup`. You may name
-  appups anything you wish in this directory, as long as they have a `.appup` extension. When you
-  build a release, the appup generator will look for missing appups in this directory structure, and
-  scan all `.appup` files for matching versions. If you have multiple appup files which match the current
-  release, then the first one encountered will take precedence, which more than likely will depend on the
-  sort order of the names.
+  Locate previous versions and triggers the appup files generation for hot upgrades.
+  Automatically generates no-op appups for apps where only config changed.
   """
-  @shortdoc "Genrates appup files"
+  @shortdoc "Generates appup files"
   use Mix.Task.Compiler
 
   alias Jellyfish.Releases.Appups
