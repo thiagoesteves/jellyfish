@@ -187,7 +187,9 @@ end
 
 ## Generating Appup files
 
-When building releases for hot code upgrades in umbrella applications, there's a known issue where the first release call after a version change doesn't properly update all the applications within the umbrella. This can result in missing files. For proper appup file generation, follow these steps:
+When building releases for hot code upgrades in umbrella applications, modifying the version file does not trigger the compiler to detect changes in mix.exs across all apps. In this scenario, all apps need to be recompiled to make the new version available to the compiler's tasks, which would normally require forcing compilation.
+
+However, `mix compile --force` has a known issue in umbrella applications as reported in [#14903](https://github.com/elixir-lang/elixir/issues/14903). To work around this problem, it is recommended to touch the `config/config.exs` file, which forces recompilation of all apps without modifying its content, as shown in the example below:
 
 1. Build the initial release:
 ```bash
@@ -200,7 +202,8 @@ MIX_ENV=prod mix release
 3. Build the new release with forced compilation:
 ```bash
 MIX_ENV=prod mix assets.deploy
-MIX_ENV=prod mix compile --force
+touch config/config.exs
+MIX_ENV=prod mix compile
 MIX_ENV=prod mix release
 ```
 

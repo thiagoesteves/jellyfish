@@ -1,5 +1,19 @@
 # CHANGELOG (v0.2.x)
 
+## 0.2.3 🚀 (2025-11-12)
+
+### Backwards incompatible changes for 0.2.2
+ * None
+
+### Installer Actions
+ * None
+
+### Bug fixes
+ * None
+
+### Enhancements
+ * None
+
 ## 0.2.2 🚀 (2025-04-08)
 
 ### Backwards incompatible changes for 0.2.1
