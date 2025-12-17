@@ -1,0 +1,101 @@
+name: Jellyfish CI
+
+on:
+  pull_request:
+    branches: [main]
+
+env:
+  MIX_ENV: test
+  SHELL: /usr/bin/bash
+
+jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup BEAM
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: 28
+          elixir-version: 1.19.1
+
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            _build
+            deps
+          key: |
+            jellyfish-${{ hashFiles('mix.lock') }}-2025-12-17
+          restore-keys: |
+            jellyfish-
+
+      - name: Install Elixir dependencies
+        run: mix do deps.get + compile --warnings-as-errors
+
+  test:
+    name: Test
+    needs: setup
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup BEAM
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: 28
+          elixir-version: 1.19.1
+
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            _build
+            deps
+          key: |
+            jellyfish-${{ hashFiles('mix.lock') }}-2025-12-17
+          restore-keys: |
+            jellyfish-
+
+      - name: Run tests
+        run: mix test --warnings-as-errors
+
+  analysis:
+    name: Static Analysis
+    needs: setup
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup BEAM
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: 28
+          elixir-version: 1.19.1
+
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            _build
+            deps
+          key: |
+            jellyfish-${{ hashFiles('mix.lock') }}-2025-12-17
+          restore-keys: |
+            jellyfish-
+
+      - name: Install Elixir dependencies
+        run: mix do deps.get + compile --warnings-as-errors
+
+      - name: Run mix deps.unlock
+        run: mix deps.unlock --check-unused
+
+      - name: Ex Doc
+        run: mix docs --failed
+
+      - name: Formatted
+        run: mix format --check-formatted

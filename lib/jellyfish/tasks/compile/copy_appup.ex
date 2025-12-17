@@ -9,6 +9,8 @@ defmodule Mix.Tasks.Compile.CopyAppup do
 
   require Logger
 
+  alias Jellyfish.Cache
+
   @recursive true
 
   @impl true
@@ -21,7 +23,32 @@ defmodule Mix.Tasks.Compile.CopyAppup do
     app_name = Mix.Project.config()[:app]
 
     release_path = Keyword.fetch!(args, :release_path)
+    hot_upgrade_deps = Keyword.fetch!(args, :hot_upgrade_deps)
 
+    # Trigger application copy
+    :ok = trigger_copy(release_path, app_name, version)
+
+    dependencies =
+      Enum.map(Mix.Project.config()[:deps], fn
+        {lib, _version} -> lib
+        {lib, _version, _options} -> lib
+      end)
+      |> MapSet.new()
+      |> MapSet.intersection(MapSet.new(hot_upgrade_deps))
+      |> MapSet.to_list()
+
+    # Trigger dependencies copy (only once per library)
+    Enum.each(dependencies, fn library ->
+      with true <- Cache.first_run_copy_appup?(library),
+           %{version: dep_version} <- Cache.get_app(library) do
+        :ok = trigger_copy(release_path, library, dep_version)
+      end
+    end)
+
+    :ok
+  end
+
+  defp trigger_copy(release_path, app_name, version) do
     appup_source = "rel/appups/#{app_name}"
 
     with [appup_file] <- Path.wildcard("#{appup_source}/*_to_#{version}.appup"),
@@ -52,13 +79,13 @@ defmodule Mix.Tasks.Compile.CopyAppup do
       error ->
         Logger.error("Error copying appup to release, #{inspect(error)}")
 
-        {:error, [diagnostic(:warning, "Appup file not found: #{Mix.Project.config()[:appup]}")]}
+        {:error, [diagnostic(:warning, "Appup file not found: #{app_name}")]}
     end
   end
 
   defp diagnostic(severity, message, file \\ Mix.Project.project_file()) do
     %Mix.Task.Compiler.Diagnostic{
-      compiler_name: "Appup",
+      compiler_name: "CopyAppup",
       file: file,
       position: nil,
       severity: severity,

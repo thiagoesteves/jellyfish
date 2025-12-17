@@ -6,7 +6,8 @@ defmodule Mix.Tasks.Compile.GenAppup do
   @shortdoc "Generates appup files"
   use Mix.Task.Compiler
 
-  alias Jellyfish.Releases.Appups
+  alias Jellyfish.Cache
+  alias Jellyfish.Releases.Appup
 
   @recursive true
 
@@ -19,6 +20,7 @@ defmodule Mix.Tasks.Compile.GenAppup do
     app_name = Mix.Project.config()[:app]
     build_path = Mix.Project.config()[:build_path] || "./_build"
     release_name = Keyword.get(args, :release_name, app_name)
+    hot_upgrade_deps = Keyword.fetch!(args, :hot_upgrade_deps)
 
     opts = %{
       app: app_name,
@@ -26,17 +28,55 @@ defmodule Mix.Tasks.Compile.GenAppup do
       output_dir: "#{build_path}/#{Mix.env()}/rel/#{release_name}/"
     }
 
+    :ok = trigger_gen_appup(app_name, opts)
+
+    dependencies =
+      Enum.map(Mix.Project.config()[:deps], fn
+        {lib, _version} -> lib
+        {lib, _version, _options} -> lib
+      end)
+      |> MapSet.new()
+      |> MapSet.intersection(MapSet.new(hot_upgrade_deps))
+      |> MapSet.to_list()
+
+    # Generate dependencies appup (only once per library)
+    Enum.each(dependencies, fn library ->
+      if Cache.first_run_gen_appup?(library) do
+        dep_opts = %{opts | app: library}
+
+        :ok = trigger_gen_appup(app_name, dep_opts)
+      end
+    end)
+
+    :ok
+  end
+
+  defp trigger_gen_appup(app_name, opts) do
+    target_app = opts.app
+
     case do_gen_appup(opts) do
       {:ok, %{versions: versions, current: current, appup: false}} ->
-        Mix.shell().info(" versions: #{inspect(versions)} current: #{current} - No appups")
+        Cache.store_app_version(target_app, current)
 
-      {:ok, %{versions: versions, current: current, appup: true}} ->
         Mix.shell().info(
-          " versions: #{inspect(versions)} current: #{current} - appups: #{app_name}/rel/appups/"
+          "[#{target_app}] versions: #{inspect(versions)} current: #{current} - No appups"
         )
 
+        :ok
+
+      {:ok, %{versions: versions, current: current, appup: true}} ->
+        Cache.store_app_version(target_app, current)
+
+        Mix.shell().info(
+          "[#{target_app}] versions: #{inspect(versions)} current: #{current} - appups: #{app_name}/rel/appups/#{target_app}"
+        )
+
+        :ok
+
       {:error, reason} ->
-        Mix.shell().info(" error checking appup files reason: #{inspect(reason)}")
+        Mix.shell().info("[#{target_app}] error checking appup files reason: #{inspect(reason)}")
+
+        {:error, reason}
     end
   end
 
@@ -109,7 +149,7 @@ defmodule Mix.Tasks.Compile.GenAppup do
             end
         end
 
-      case Appups.make(app, v1, v2, v1_path, v2_path, _transforms = []) do
+      case Appup.make(app, v1, v2, v1_path, v2_path, _transforms = []) do
         {:error, _} = err ->
           err
 
