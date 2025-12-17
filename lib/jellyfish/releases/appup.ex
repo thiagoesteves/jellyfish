@@ -1,4 +1,4 @@
-defmodule Jellyfish.Releases.Appups do
+defmodule Jellyfish.Releases.Appup do
   @moduledoc """
   Generate appup files for hot upgrades
 

@@ -7,7 +7,7 @@ defmodule Mix.Tasks.Compile.GenAppup do
   use Mix.Task.Compiler
 
   alias Jellyfish.Cache
-  alias Jellyfish.Releases.Appups
+  alias Jellyfish.Releases.Appup
 
   @recursive true
 
@@ -147,7 +147,7 @@ defmodule Mix.Tasks.Compile.GenAppup do
             end
         end
 
-      case Appups.make(app, v1, v2, v1_path, v2_path, _transforms = []) do
+      case Appup.make(app, v1, v2, v1_path, v2_path, _transforms = []) do
         {:error, _} = err ->
           err
 
