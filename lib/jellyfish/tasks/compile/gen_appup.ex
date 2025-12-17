@@ -19,6 +19,7 @@ defmodule Mix.Tasks.Compile.GenAppup do
     app_name = Mix.Project.config()[:app]
     build_path = Mix.Project.config()[:build_path] || "./_build"
     release_name = Keyword.get(args, :release_name, app_name)
+    hot_upgrade_deps = Keyword.fetch!(args, :hot_upgrade_deps)
 
     opts = %{
       app: app_name,
@@ -26,17 +27,44 @@ defmodule Mix.Tasks.Compile.GenAppup do
       output_dir: "#{build_path}/#{Mix.env()}/rel/#{release_name}/"
     }
 
+    :ok = trigger_gen_appup(app_name, opts)
+
+    # Generate dependencies appup (only once)
+    if first_run_gen_appup?() do
+      Enum.each(hot_upgrade_deps, fn dep_app ->
+        dep_opts = %{opts | app: dep_app}
+
+        :ok = trigger_gen_appup(app_name, dep_opts)
+      end)
+    end
+  end
+
+  defp trigger_gen_appup(app_name, opts) do
+    target_app = opts.app
+
     case do_gen_appup(opts) do
       {:ok, %{versions: versions, current: current, appup: false}} ->
-        Mix.shell().info(" versions: #{inspect(versions)} current: #{current} - No appups")
+        Process.put(target_app, %{version: current})
 
-      {:ok, %{versions: versions, current: current, appup: true}} ->
         Mix.shell().info(
-          " versions: #{inspect(versions)} current: #{current} - appups: #{app_name}/rel/appups/"
+          "[#{target_app}] versions: #{inspect(versions)} current: #{current} - No appups"
         )
 
+        :ok
+
+      {:ok, %{versions: versions, current: current, appup: true}} ->
+        Process.put(target_app, %{version: current})
+
+        Mix.shell().info(
+          "[#{target_app}] versions: #{inspect(versions)} current: #{current} - appups: #{app_name}/rel/appups/#{target_app}"
+        )
+
+        :ok
+
       {:error, reason} ->
-        Mix.shell().info(" error checking appup files reason: #{inspect(reason)}")
+        Mix.shell().info("[#{target_app}] error checking appup files reason: #{inspect(reason)}")
+
+        {:error, reason}
     end
   end
 
@@ -218,5 +246,15 @@ defmodule Mix.Tasks.Compile.GenAppup do
       {:error, reason} ->
         {:error, {:write_terms, :file, reason}}
     end
+  end
+
+  defp first_run_gen_appup? do
+    data = Process.get("libraries-gen-appup", true)
+
+    if data do
+      Process.put("libraries-gen-appup", false)
+    end
+
+    data
   end
 end

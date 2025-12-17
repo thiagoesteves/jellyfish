@@ -21,7 +21,23 @@ defmodule Mix.Tasks.Compile.CopyAppup do
     app_name = Mix.Project.config()[:app]
 
     release_path = Keyword.fetch!(args, :release_path)
+    hot_upgrade_deps = Keyword.fetch!(args, :hot_upgrade_deps)
 
+    # Trigger application copy
+    :ok = trigger_copy(release_path, app_name, version)
+
+    # Trigger dependencies copy (only once)
+    if first_run_copy?() do
+      Enum.each(hot_upgrade_deps, fn dep_app ->
+        %{version: dep_version} = Process.get(dep_app)
+        :ok = trigger_copy(release_path, dep_app, dep_version)
+      end)
+    end
+
+    :ok
+  end
+
+  defp trigger_copy(release_path, app_name, version) do
     appup_source = "rel/appups/#{app_name}"
 
     with [appup_file] <- Path.wildcard("#{appup_source}/*_to_#{version}.appup"),
@@ -52,17 +68,27 @@ defmodule Mix.Tasks.Compile.CopyAppup do
       error ->
         Logger.error("Error copying appup to release, #{inspect(error)}")
 
-        {:error, [diagnostic(:warning, "Appup file not found: #{Mix.Project.config()[:appup]}")]}
+        {:error, [diagnostic(:warning, "Appup file not found: #{app_name}")]}
     end
   end
 
   defp diagnostic(severity, message, file \\ Mix.Project.project_file()) do
     %Mix.Task.Compiler.Diagnostic{
-      compiler_name: "Appup",
+      compiler_name: "CopyAppup",
       file: file,
       position: nil,
       severity: severity,
       message: message
     }
+  end
+
+  defp first_run_copy? do
+    data = Process.get("libraries-copy-appup", true)
+
+    if data do
+      Process.put("libraries-copy-appup", false)
+    end
+
+    data
   end
 end
