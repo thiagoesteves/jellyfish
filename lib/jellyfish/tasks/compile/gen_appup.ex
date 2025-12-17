@@ -6,6 +6,7 @@ defmodule Mix.Tasks.Compile.GenAppup do
   @shortdoc "Generates appup files"
   use Mix.Task.Compiler
 
+  alias Jellyfish.Cache
   alias Jellyfish.Releases.Appups
 
   @recursive true
@@ -29,14 +30,23 @@ defmodule Mix.Tasks.Compile.GenAppup do
 
     :ok = trigger_gen_appup(app_name, opts)
 
-    # Generate dependencies appup (only once)
-    if first_run_gen_appup?() do
-      Enum.each(hot_upgrade_deps, fn dep_app ->
-        dep_opts = %{opts | app: dep_app}
+    dependencies =
+      Enum.map(Mix.Project.config()[:deps], fn
+        {lib, _version} -> lib
+        {lib, _version, _options} -> lib
+      end)
+      |> MapSet.new()
+      |> MapSet.intersection(MapSet.new(hot_upgrade_deps))
+      |> MapSet.to_list()
+
+    # Generate dependencies appup (only once per library)
+    Enum.each(dependencies, fn library ->
+      if Cache.first_run_gen_appup?(library) do
+        dep_opts = %{opts | app: library}
 
         :ok = trigger_gen_appup(app_name, dep_opts)
-      end)
-    end
+      end
+    end)
   end
 
   defp trigger_gen_appup(app_name, opts) do
@@ -44,7 +54,7 @@ defmodule Mix.Tasks.Compile.GenAppup do
 
     case do_gen_appup(opts) do
       {:ok, %{versions: versions, current: current, appup: false}} ->
-        Process.put(target_app, %{version: current})
+        Cache.store_app_version(target_app, current)
 
         Mix.shell().info(
           "[#{target_app}] versions: #{inspect(versions)} current: #{current} - No appups"
@@ -53,7 +63,7 @@ defmodule Mix.Tasks.Compile.GenAppup do
         :ok
 
       {:ok, %{versions: versions, current: current, appup: true}} ->
-        Process.put(target_app, %{version: current})
+        Cache.store_app_version(target_app, current)
 
         Mix.shell().info(
           "[#{target_app}] versions: #{inspect(versions)} current: #{current} - appups: #{app_name}/rel/appups/#{target_app}"
@@ -246,15 +256,5 @@ defmodule Mix.Tasks.Compile.GenAppup do
       {:error, reason} ->
         {:error, {:write_terms, :file, reason}}
     end
-  end
-
-  defp first_run_gen_appup? do
-    data = Process.get("libraries-gen-appup", true)
-
-    if data do
-      Process.put("libraries-gen-appup", false)
-    end
-
-    data
   end
 end

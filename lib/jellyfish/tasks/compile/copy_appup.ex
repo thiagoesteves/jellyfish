@@ -9,6 +9,8 @@ defmodule Mix.Tasks.Compile.CopyAppup do
 
   require Logger
 
+  alias Jellyfish.Cache
+
   @recursive true
 
   @impl true
@@ -26,13 +28,22 @@ defmodule Mix.Tasks.Compile.CopyAppup do
     # Trigger application copy
     :ok = trigger_copy(release_path, app_name, version)
 
-    # Trigger dependencies copy (only once)
-    if first_run_copy?() do
-      Enum.each(hot_upgrade_deps, fn dep_app ->
-        %{version: dep_version} = Process.get(dep_app)
-        :ok = trigger_copy(release_path, dep_app, dep_version)
+    dependencies =
+      Enum.map(Mix.Project.config()[:deps], fn
+        {lib, _version} -> lib
+        {lib, _version, _options} -> lib
       end)
-    end
+      |> MapSet.new()
+      |> MapSet.intersection(MapSet.new(hot_upgrade_deps))
+      |> MapSet.to_list()
+
+    # Trigger dependencies copy (only once per library)
+    Enum.each(dependencies, fn library ->
+      with true <- Cache.first_run_copy_appup?(library),
+           %{version: dep_version} <- Cache.get_app(library) do
+        :ok = trigger_copy(release_path, library, dep_version)
+      end
+    end)
 
     :ok
   end
@@ -80,15 +91,5 @@ defmodule Mix.Tasks.Compile.CopyAppup do
       severity: severity,
       message: message
     }
-  end
-
-  defp first_run_copy? do
-    data = Process.get("libraries-copy-appup", true)
-
-    if data do
-      Process.put("libraries-copy-appup", false)
-    end
-
-    data
   end
 end

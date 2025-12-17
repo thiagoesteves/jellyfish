@@ -174,8 +174,8 @@ defmodule Jellyfish.Releases.Appups do
     attributes = beam_attributes(v1_file)
     exports = beam_exports(v1_file)
     imports = beam_imports(v2_file)
-    is_supervisor = is_supervisor?(attributes)
-    is_special_proc = is_special_process?(exports)
+    is_supervisor = supervisor?(attributes)
+    is_special_proc = special_process?(exports)
 
     depends_on =
       imports
@@ -200,12 +200,12 @@ defmodule Jellyfish.Releases.Appups do
     exports
   end
 
-  defp is_special_process?(exports) do
+  defp special_process?(exports) do
     Keyword.get(exports, :system_code_change) == 4 || Keyword.get(exports, :code_change) == 3 ||
       Keyword.get(exports, :code_change) == 4
   end
 
-  defp is_supervisor?(attributes) do
+  defp supervisor?(attributes) do
     behaviours = Keyword.get(attributes, :behavior, []) ++ Keyword.get(attributes, :behaviour, [])
     :supervisor in behaviours || Supervisor in behaviours
   end
