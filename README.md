@@ -4,7 +4,26 @@
 
 [![Hex.pm Version](http://img.shields.io/hexpm/v/jellyfish.svg?style=flat)](https://hex.pm/packages/jellyfish)
 
-Jellyfish is a library designed to streamline the management of appup and release files, enabling hot-upgrades for Elixir applications. Born from the integration of concepts and functionalities from three influential repositories:
+Jellyfish is a library that generates appup files, enabling hot-upgrades for Elixir applications without downtime.
+
+## What are Appup Files?
+Appup files describe how to upgrade and downgrade an application from one version to another. They contain:
+
+ * The application name
+ * Instructions to upgrade to a newer version
+ * Instructions to downgrade to the original version
+
+For detailed information about the appup format, see the [Erlang appup manual](http://erlang.org/doc/man/appup.html).
+
+## Important Upgrade Ordering
+When upgrading processes, order matters:
+
+ * Processes are suspended during upgrades
+ * In-flight requests are handled by the old version until upgrade completes
+ * Upgrade dependencies first, then dependents (e.g., if `proc_a` depends on `proc_b`, upgrade `proc_b` first)
+ * Jellyfish automatically performs topological sorting when generating appups
+
+References:
 
  * [Distillery](https://github.com/bitwalker/distillery)
  * [Forecastle](https://github.com/ausimian/forecastle)
@@ -12,8 +31,7 @@ Jellyfish is a library designed to streamline the management of appup and releas
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `jellyfish` to your list of dependencies in `mix.exs`:
+Add `jellyfish` to your dependencies in `mix.exs`:
 
 ```elixir
 def deps do
@@ -23,7 +41,9 @@ def deps do
 end
 ```
 
-You also need to add the following line in the mix project
+## Basic Configuration
+Add the following lines in the `mix.exs` project:
+
 ```elixir
   def project do
     [
@@ -38,7 +58,56 @@ You also need to add the following line in the mix project
   end
 ```
 
-Once the mix release file is generated, it will contain all the appup file to execute a hot-upgrade or full deployment.
+Once the `mix release` is called, if a previous version is found, the appup file will be automatically generated and included in the release package for executing hot-upgrades.
+
+### Hot-Upgrading Dependencies (Optional)
+
+By default, Jellyfish generates appup files only for your application code. To include specific libraries in hot-upgrades, add them to the `hot_upgrade_deps` list.
+
+> [!WARNING]
+> Before adding a library to the hot-upgrade list, verify that its version update supports hot-upgrades. Not all libraries (and all versions) are designed to be safely upgraded at runtime.
+
+#### Standard Elixir projects
+```elixir
+  def project do
+    [
+      ...
+      releases: [
+        your_app_name: [
+          ...
+          steps: [:assemble, &Jellyfish.generate/1, :tar]
+        ]
+      ],
+      hot_upgrade_deps: [:any_library],
+      ...
+    ]
+  end
+```
+
+#### Umbrella projects
+```elixir
+  def project do
+    [
+      ...
+      releases: [
+        your_app_name: [
+          ...
+          steps: [:assemble, &Jellyfish.generate/1, :tar],
+          applications: [
+            app_1: :permanent,
+            app_2: :permanent,
+            app_3: :permanent,
+            app_web: :permanent
+          ],
+        ]
+      ],
+      hot_upgrade_deps: [:any_library],
+      ...
+    ]
+  end
+```
+
+Jellyfish will search for and create appup files for both your applications and the specified dependencies.
 
 # Appup file
 
@@ -94,8 +163,11 @@ defmodule Myumbrella.MixProject do
           ],
           steps: [:assemble, &Jellyfish.generate/1, :tar]
         ]
-      ]
+      ],
+      hot_upgrade_deps: [:any_library], # Optional
+      ...
     ]
+  end
 
   defp deps do
     [
@@ -153,8 +225,9 @@ defmodule Myumbrella.MixProject do
         ]
       ]
     ]
+  end
 
-      defp deps do
+  defp deps do
     [
       {:jellyfish, "~> 0.2.0"}
     ]
@@ -204,7 +277,9 @@ MIX_ENV=prod mix compile --force
 MIX_ENV=prod mix release
 ```
 
-# Examples
+**Why --force is needed**: Modifying the version file alone doesn't trigger the compiler to detect changes across all umbrella apps. Forcing compilation ensures the new version is available to all compiler tasks.
+
+## Examples
 Explore these resources for practical examples of using Jellyfish with Elixir applications:
 
  * [Deployex](https://github.com/thiagoesteves/deployex) - Elixir application showcasing Jellyfish's capabilities in deployment with hot-upgrades.
