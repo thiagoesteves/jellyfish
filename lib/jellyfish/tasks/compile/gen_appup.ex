@@ -47,6 +47,8 @@ defmodule Mix.Tasks.Compile.GenAppup do
         :ok = trigger_gen_appup(app_name, dep_opts)
       end
     end)
+
+    :ok
   end
 
   defp trigger_gen_appup(app_name, opts) do
