@@ -14,6 +14,10 @@ defmodule Mix.Tasks.Compile.CopyAppup do
 
   @recursive true
 
+  ### ==========================================================================
+  ### Callback function implementation
+  ### ==========================================================================
+
   @impl true
   @spec run(any()) :: :ok | {:error, [Mix.Task.Compiler.Diagnostic.t(), ...]}
   def run(args) do
@@ -40,6 +44,9 @@ defmodule Mix.Tasks.Compile.CopyAppup do
     :ok
   end
 
+  ### ==========================================================================
+  ### Private functions
+  ### ==========================================================================
   defp trigger_copy(release_path, app_name, version) do
     appup_source = "rel/appups/#{app_name}"
 
