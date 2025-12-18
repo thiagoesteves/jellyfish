@@ -8,11 +8,32 @@ defmodule Mix.Tasks.Compile.GenAppup do
 
   alias Jellyfish.Cache
   alias Jellyfish.Releases.Appup
+  alias Jellyfish.Releases.Helper
 
   @recursive true
 
+  @type t :: %__MODULE__{
+          app: atom() | nil,
+          type: :project | :dependency,
+          upgrade_from: :latest,
+          output_dir: String.t() | nil
+        }
+
+  defstruct app: nil,
+            type: :project,
+            upgrade_from: :latest,
+            output_dir: nil
+
+  @pad_app_name 25
+  @pad_versions_size 40
+  @pad_current_version_size 20
+
+  ### ==========================================================================
+  ### Callback function implementation
+  ### ==========================================================================
+
   @impl true
-  @spec run(term()) :: no_return
+  @spec run(term()) :: :ok | {:error, [Mix.Task.Compiler.Diagnostic.t(), ...]}
   def run(args) do
     # make sure loadpaths are updated
     Mix.Task.run("loadpaths", [])
@@ -20,70 +41,77 @@ defmodule Mix.Tasks.Compile.GenAppup do
     app_name = Mix.Project.config()[:app]
     build_path = Mix.Project.config()[:build_path] || "./_build"
     release_name = Keyword.get(args, :release_name, app_name)
-    hot_upgrade_deps = Keyword.fetch!(args, :hot_upgrade_deps)
 
-    opts = %{
+    opts = %__MODULE__{
       app: app_name,
-      upgrade_from: :latest,
       output_dir: "#{build_path}/#{Mix.env()}/rel/#{release_name}/"
     }
 
     :ok = trigger_gen_appup(app_name, opts)
 
-    dependencies =
-      Enum.map(Mix.Project.config()[:deps], fn
-        {lib, _version} -> lib
-        {lib, _version, _options} -> lib
-      end)
-      |> MapSet.new()
-      |> MapSet.intersection(MapSet.new(hot_upgrade_deps))
-      |> MapSet.to_list()
+    dependencies = Helper.prod_dependencies(Mix.Project.config()[:deps])
 
     # Generate dependencies appup (only once per library)
-    Enum.each(dependencies, fn library ->
-      if Cache.first_run_gen_appup?(library) do
-        dep_opts = %{opts | app: library}
-
-        :ok = trigger_gen_appup(app_name, dep_opts)
+    Enum.each(dependencies, fn dep_app ->
+      if Cache.first_run_gen_appup?(dep_app) do
+        :ok = trigger_gen_appup(app_name, %{opts | app: dep_app, type: :dependency})
       end
     end)
 
     :ok
   end
 
-  defp trigger_gen_appup(app_name, opts) do
-    target_app = opts.app
+  ### ==========================================================================
+  ### Private functions
+  ### ==========================================================================
+
+  defp trigger_gen_appup(root_app_name, %{app: target_app} = opts) do
+    padded_name = String.pad_trailing("[#{target_app}]", @pad_app_name)
 
     case do_gen_appup(opts) do
       {:ok, %{versions: versions, current: current, appup: false}} ->
         Cache.store_app_version(target_app, current)
 
-        Mix.shell().info(
-          "[#{target_app}] versions: #{inspect(versions)} current: #{current} - No appups"
-        )
+        padded_versions =
+          String.pad_trailing("versions: #{inspect(versions)}", @pad_versions_size)
+
+        padded_current = String.pad_trailing("current: #{current}", @pad_current_version_size)
+
+        Mix.shell().info([
+          :cyan,
+          "#{padded_name} #{padded_versions} #{padded_current} - No appups"
+        ])
 
         :ok
 
       {:ok, %{versions: versions, current: current, appup: true}} ->
         Cache.store_app_version(target_app, current)
 
-        Mix.shell().info(
-          "[#{target_app}] versions: #{inspect(versions)} current: #{current} - appups: #{app_name}/rel/appups/#{target_app}"
-        )
+        padded_versions =
+          String.pad_trailing("versions: #{inspect(versions)}", @pad_versions_size)
+
+        padded_current = String.pad_trailing("current: #{current}", @pad_current_version_size)
+
+        Mix.shell().info([
+          :yellow,
+          "#{padded_name} #{padded_versions} #{padded_current} - appups: #{root_app_name}/rel/appups/#{target_app}"
+        ])
 
         :ok
 
       {:error, reason} ->
-        Mix.shell().info("[#{target_app}] error checking appup files reason: #{inspect(reason)}")
+        Mix.shell().info("#{padded_name} error checking appup files reason: #{inspect(reason)}")
 
         {:error, reason}
     end
   end
 
-  defp do_gen_appup(opts) do
-    app = opts[:app]
-    output_dir = opts[:output_dir]
-
+  defp do_gen_appup(%__MODULE__{
+         app: app,
+         output_dir: output_dir,
+         type: type,
+         upgrade_from: upgrade_from
+       }) do
     # Does app exist?
     case Application.load(app) do
       :ok ->
@@ -134,7 +162,7 @@ defmodule Mix.Tasks.Compile.GenAppup do
       {:ok, %{versions: Map.keys(all_versions), current: v2, appup: false}}
     else
       {v1, v1_path} =
-        case opts[:upgrade_from] do
+        case upgrade_from do
           :latest ->
             version = List.first(sorted_versions)
             {version, Map.fetch!(previous_version, version)}
@@ -160,6 +188,7 @@ defmodule Mix.Tasks.Compile.GenAppup do
             """
             {
               "name": "#{app}",
+              "type": "#{type}",
               "from": "#{v1}",
               "to": "#{v2}"
             }

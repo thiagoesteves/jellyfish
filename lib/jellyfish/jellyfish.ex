@@ -12,10 +12,8 @@ defmodule Jellyfish do
       "Checking if previous versions are available"
     ])
 
-    hot_upgrade_deps = Mix.Project.config()[:hot_upgrade_deps] || []
-
-    Mix.Task.run("compile.gen_appup", release_name: name, hot_upgrade_deps: hot_upgrade_deps)
-    Mix.Task.run("compile.copy_appup", release_path: path, hot_upgrade_deps: hot_upgrade_deps)
+    Mix.Task.run("compile.gen_appup", release_name: name)
+    Mix.Task.run("compile.copy_appup", release_path: path)
 
     rel_source = Path.join(vp, "#{name}.rel")
     rel_dest = Path.join([path, "releases", "#{name}-#{vsn}.rel"])

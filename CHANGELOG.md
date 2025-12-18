@@ -1,5 +1,19 @@
 # CHANGELOG (v0.2.x)
 
+## 0.2.4 🚀 (2025-12-18)
+
+### Backwards incompatible changes for 0.2.3
+ * None
+
+### Installer Actions
+ * None
+
+### Bug fixes
+ * None
+
+### Enhancements
+ * [`ISSUE-4`](https://github.com/thiagoesteves/jellyfish/issues/4) Allow Appup creation for libraries
+
 ## 0.2.3 🚀 (2025-11-12)
 
 ### Backwards incompatible changes for 0.2.2
