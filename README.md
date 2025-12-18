@@ -62,52 +62,10 @@ Once the `mix release` is called, if a previous version is found, the appup file
 
 ### Hot-Upgrading Dependencies (Optional)
 
-By default, Jellyfish generates appup files only for your application code. To include specific libraries in hot-upgrades, add them to the `hot_upgrade_deps` list.
+Jellyfish generates appup files for both your application code and its dependencies. This allows you to upgrade third-party libraries at runtime alongside your own code changes.
 
 > [!WARNING]
-> Before adding a library to the hot-upgrade list, verify that its version update supports hot-upgrades. Not all libraries (and all versions) are designed to be safely upgraded at runtime.
-
-#### Standard Elixir projects
-```elixir
-  def project do
-    [
-      ...
-      releases: [
-        your_app_name: [
-          ...
-          steps: [:assemble, &Jellyfish.generate/1, :tar]
-        ]
-      ],
-      hot_upgrade_deps: [:any_library],
-      ...
-    ]
-  end
-```
-
-#### Umbrella projects
-```elixir
-  def project do
-    [
-      ...
-      releases: [
-        your_app_name: [
-          ...
-          steps: [:assemble, &Jellyfish.generate/1, :tar],
-          applications: [
-            app_1: :permanent,
-            app_2: :permanent,
-            app_3: :permanent,
-            app_web: :permanent
-          ],
-        ]
-      ],
-      hot_upgrade_deps: [:any_library],
-      ...
-    ]
-  end
-```
-
-Jellyfish will search for and create appup files for both your applications and the specified dependencies.
+> Not all code changes are safe for hot-upgrades. Before performing a hot-upgrade, Check if the dependency supports hot-upgrades between versions, review the changelog for structural changes (e.g., process state modifications, API changes), check stateful processes like GenServers, Agents, etc that may require special handling.
 
 # Appup file
 
@@ -163,8 +121,7 @@ defmodule Myumbrella.MixProject do
           ],
           steps: [:assemble, &Jellyfish.generate/1, :tar]
         ]
-      ],
-      hot_upgrade_deps: [:any_library], # Optional
+      ]
       ...
     ]
   end

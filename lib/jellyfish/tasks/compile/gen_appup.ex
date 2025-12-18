@@ -8,6 +8,7 @@ defmodule Mix.Tasks.Compile.GenAppup do
 
   alias Jellyfish.Cache
   alias Jellyfish.Releases.Appup
+  alias Jellyfish.Releases.Helper
 
   @recursive true
 
@@ -20,7 +21,6 @@ defmodule Mix.Tasks.Compile.GenAppup do
     app_name = Mix.Project.config()[:app]
     build_path = Mix.Project.config()[:build_path] || "./_build"
     release_name = Keyword.get(args, :release_name, app_name)
-    hot_upgrade_deps = Keyword.fetch!(args, :hot_upgrade_deps)
 
     opts = %{
       app: app_name,
@@ -30,21 +30,12 @@ defmodule Mix.Tasks.Compile.GenAppup do
 
     :ok = trigger_gen_appup(app_name, opts)
 
-    dependencies =
-      Enum.map(Mix.Project.config()[:deps], fn
-        {lib, _version} -> lib
-        {lib, _version, _options} -> lib
-      end)
-      |> MapSet.new()
-      |> MapSet.intersection(MapSet.new(hot_upgrade_deps))
-      |> MapSet.to_list()
+    dependencies = Helper.prod_dependencies(Mix.Project.config()[:deps])
 
     # Generate dependencies appup (only once per library)
     Enum.each(dependencies, fn library ->
       if Cache.first_run_gen_appup?(library) do
-        dep_opts = %{opts | app: library}
-
-        :ok = trigger_gen_appup(app_name, dep_opts)
+        :ok = trigger_gen_appup(app_name, %{opts | app: library})
       end
     end)
 
@@ -54,27 +45,37 @@ defmodule Mix.Tasks.Compile.GenAppup do
   defp trigger_gen_appup(app_name, opts) do
     target_app = opts.app
 
+    padded_name = String.pad_trailing("[#{target_app}]", 25)
+
     case do_gen_appup(opts) do
       {:ok, %{versions: versions, current: current, appup: false}} ->
         Cache.store_app_version(target_app, current)
 
-        Mix.shell().info(
-          "[#{target_app}] versions: #{inspect(versions)} current: #{current} - No appups"
-        )
+        padded_versions = String.pad_trailing("versions: #{inspect(versions)}", 40)
+        padded_current = String.pad_trailing("current: #{current}", 20)
+
+        Mix.shell().info([
+          :cyan,
+          "#{padded_name} #{padded_versions} #{padded_current} - No appups"
+        ])
 
         :ok
 
       {:ok, %{versions: versions, current: current, appup: true}} ->
         Cache.store_app_version(target_app, current)
 
-        Mix.shell().info(
-          "[#{target_app}] versions: #{inspect(versions)} current: #{current} - appups: #{app_name}/rel/appups/#{target_app}"
-        )
+        padded_versions = String.pad_trailing("versions: #{inspect(versions)}", 40)
+        padded_current = String.pad_trailing("current: #{current}", 20)
+
+        Mix.shell().info([
+          :yellow,
+          "#{padded_name} #{padded_versions} #{padded_current} - appups: #{app_name}/rel/appups/#{target_app}"
+        ])
 
         :ok
 
       {:error, reason} ->
-        Mix.shell().info("[#{target_app}] error checking appup files reason: #{inspect(reason)}")
+        Mix.shell().info("#{padded_name} error checking appup files reason: #{inspect(reason)}")
 
         {:error, reason}
     end

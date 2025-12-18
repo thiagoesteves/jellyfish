@@ -10,6 +10,7 @@ defmodule Mix.Tasks.Compile.CopyAppup do
   require Logger
 
   alias Jellyfish.Cache
+  alias Jellyfish.Releases.Helper
 
   @recursive true
 
@@ -21,21 +22,12 @@ defmodule Mix.Tasks.Compile.CopyAppup do
 
     version = Mix.Project.config()[:version]
     app_name = Mix.Project.config()[:app]
-
     release_path = Keyword.fetch!(args, :release_path)
-    hot_upgrade_deps = Keyword.fetch!(args, :hot_upgrade_deps)
 
     # Trigger application copy
     :ok = trigger_copy(release_path, app_name, version)
 
-    dependencies =
-      Enum.map(Mix.Project.config()[:deps], fn
-        {lib, _version} -> lib
-        {lib, _version, _options} -> lib
-      end)
-      |> MapSet.new()
-      |> MapSet.intersection(MapSet.new(hot_upgrade_deps))
-      |> MapSet.to_list()
+    dependencies = Helper.prod_dependencies(Mix.Project.config()[:deps])
 
     # Trigger dependencies copy (only once per library)
     Enum.each(dependencies, fn library ->
