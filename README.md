@@ -229,12 +229,11 @@ MIX_ENV=prod mix release
 2. Update the version (e.g., from `0.1.0` to `0.1.1`) in `version.txt`
 3. Build the new release with forced compilation:
 ```bash
+MIX_ENV=prod mix deps.get # optional, in case you had updated any dependency
 MIX_ENV=prod mix assets.deploy
 MIX_ENV=prod mix compile --force
 MIX_ENV=prod mix release
 ```
-
-**Why --force is needed**: Modifying the version file alone doesn't trigger the compiler to detect changes across all umbrella apps. Forcing compilation ensures the new version is available to all compiler tasks.
 
 ## Examples
 Explore these resources for practical examples of using Jellyfish with Elixir applications:
