@@ -61,4 +61,27 @@ defmodule Distillery.Test.AppupTest do
 
     assert ^expected = Appup.make(:test, "0.2.0", "0.3.0", @v2_path, @v3_path)
   end
+
+  test "returns an error when the declared previous version doesn't match the .app file" do
+    assert {:error,
+            {:appups,
+             {:mismatched_versions, [version: :previous, expected: "9.9.9", got: "0.1.0"]}}} =
+             Appup.make(:test, "9.9.9", "0.2.0", @v1_path, @v2_path)
+  end
+
+  test "returns an error when the previous version's .app file can't be read" do
+    assert {:error, {:appups, :file, {:invalid_dotapp, _reason}}} =
+             Appup.make(:test, "0.1.0", "0.2.0", "/nonexistent/path", @v2_path)
+  end
+
+  test "returns an error when the declared next version doesn't match the .app file" do
+    assert {:error,
+            {:appups, {:mismatched_versions, [version: :next, expected: "9.9.9", got: "0.2.0"]}}} =
+             Appup.make(:test, "0.1.0", "9.9.9", @v1_path, @v2_path)
+  end
+
+  test "returns an error when the next version's .app file can't be read" do
+    assert {:error, {:appups, :file, {:invalid_dotapp, _reason}}} =
+             Appup.make(:test, "0.1.0", "0.2.0", @v1_path, "/nonexistent/path")
+  end
 end
