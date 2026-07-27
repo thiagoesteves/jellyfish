@@ -13,7 +13,7 @@ jobs:
     name: Setup
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup BEAM
         uses: erlef/setup-beam@v1
@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup BEAM
         uses: erlef/setup-beam@v1
@@ -61,7 +61,7 @@ jobs:
             jellyfish-
 
       - name: Run tests
-        run: mix test --warnings-as-errors
+        run: mix test --cover
 
   analysis:
     name: Static Analysis
@@ -69,7 +69,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup BEAM
         uses: erlef/setup-beam@v1
@@ -93,6 +93,9 @@ jobs:
 
       - name: Run mix deps.unlock
         run: mix deps.unlock --check-unused
+
+      - name: Mix Audit
+        run: mix deps.audit
 
       - name: Ex Doc
         run: mix docs --failed

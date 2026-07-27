@@ -17,6 +17,7 @@ defmodule JellyfishTest do
     :ok
   end
 
+  @tag :capture_log
   test "generate/1 runs the appup pipeline and copies the release file into the release path" do
     release_path = Path.join(System.tmp_dir!(), "jellyfish_generate_test")
     File.rm_rf!(release_path)

@@ -254,6 +254,14 @@ Explore these resources for practical examples of using Jellyfish with Elixir ap
 🗨️ **Contact us:**
 Feel free to contact me on [Linkedin](https://www.linkedin.com/in/thiago-cesar-calori-esteves-972368115/).
 
+## ☕ Support the project
+
+Jellyfish is free and open source. If it's useful to you, consider supporting its development:
+
+ * **GitHub Sponsors:** [github.com/sponsors/thiagoesteves](https://github.com/sponsors/thiagoesteves)
+ * **BTC Wallet Address:** `bc1q3f5eyg2qlun6dc4l597yuyygmkh2qvklwecw8r`
+ * **ETH Wallet Address:** `0x151C3A7AE305b3fF385c7EEce72C6c4E23dE05Fa`
+
 ## Copyright and License
 
 Copyright (c) 2024, Thiago Esteves.
