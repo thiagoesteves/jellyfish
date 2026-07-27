@@ -251,7 +251,7 @@ Feel free to contact me on [Linkedin](https://www.linkedin.com/in/thiago-cesar-c
 
 Copyright (c) 2024, Thiago Esteves.
 
-DeployEx source code is licensed under the [MIT License](LICENSE.md).
+Jellyfish source code is licensed under the [MIT License](LICENSE.md).
 
 # References
 
