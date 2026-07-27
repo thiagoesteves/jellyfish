@@ -198,7 +198,7 @@ defmodule Mix.Tasks.Compile.GenAppup do
             end
         end
 
-      case Appup.make(app, v1, v2, v1_path, v2_path, _transforms = []) do
+      case Appup.make(app, v1, v2, v1_path, v2_path) do
         {:error, _} = err ->
           err
 

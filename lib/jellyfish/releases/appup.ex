@@ -45,9 +45,7 @@ defmodule Jellyfish.Releases.Appup do
 
   """
   @spec make(app, version_str, version_str, path_str, path_str) :: {:ok, appup} | {:error, term}
-  @spec make(app, version_str, version_str, path_str, path_str, [module]) ::
-          {:ok, appup} | {:error, term}
-  def make(application, v1, v2, v1_path, v2_path, transforms \\ []) do
+  def make(application, v1, v2, v1_path, v2_path) do
     v1_dotapp =
       v1_path
       |> Path.join("/ebin/")
@@ -80,8 +78,7 @@ defmodule Jellyfish.Releases.Appup do
                        v1_props,
                        v2,
                        v2_path,
-                       v2_props,
-                       transforms
+                       v2_props
                      )}
 
                   false ->
@@ -106,7 +103,7 @@ defmodule Jellyfish.Releases.Appup do
     end
   end
 
-  defp make_appup(_app, v1, v1_path, _v1_props, v2, v2_path, _v2_props, _transforms) do
+  defp make_appup(_app, v1, v1_path, _v1_props, v2, v2_path, _v2_props) do
     v1 = String.to_charlist(v1)
     v2 = String.to_charlist(v2)
     v1_path = String.to_charlist(Path.join(v1_path, "ebin"))
