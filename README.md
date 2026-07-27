@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/jellyfish-logo-dark.svg">
+    <img src="assets/jellyfish-logo-light.svg" alt="Jellyfish logo" width="120">
+  </picture>
+</p>
+
 # Jellyfish
 
 > Simplifying Hot-Upgrades for Elixir Applications
@@ -251,7 +258,7 @@ Feel free to contact me on [Linkedin](https://www.linkedin.com/in/thiago-cesar-c
 
 Copyright (c) 2024, Thiago Esteves.
 
-DeployEx source code is licensed under the [MIT License](LICENSE.md).
+Jellyfish source code is licensed under the [MIT License](LICENSE.md).
 
 # References
 
