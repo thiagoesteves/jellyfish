@@ -15,12 +15,14 @@ defmodule Mix.Tasks.Compile.GenAppupTest do
     :ok
   end
 
+  @tag :capture_log
   test "returns :ok and skips appup generation when no previous release version exists" do
     # No release has been assembled under _build/test/rel/<app>, so there is
     # nothing to diff against and generation should be a no-op, not a crash.
     assert :ok = Mix.Tasks.Compile.GenAppup.run(release_name: @app_name)
   end
 
+  @tag :capture_log
   test "generates an appup when a previous release version is found" do
     version = Mix.Project.config()[:version]
     current_ebin = Path.join(Application.app_dir(@app_name), "ebin")
@@ -54,6 +56,7 @@ defmodule Mix.Tasks.Compile.GenAppupTest do
     assert File.exists?(Path.join(appup_dir, "jellyfish.json"))
   end
 
+  @tag :capture_log
   test "returns an error diagnostic, instead of crashing, when Appup.make reports a version mismatch" do
     current_ebin = Path.join(Application.app_dir(@app_name), "ebin")
     current_app_file = Path.join(current_ebin, "#{@app_name}.app")

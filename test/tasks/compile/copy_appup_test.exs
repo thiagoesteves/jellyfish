@@ -20,6 +20,7 @@ defmodule Mix.Tasks.Compile.CopyAppupTest do
     assert :ok = Mix.Tasks.Compile.CopyAppup.run(release_path: release_path)
   end
 
+  @tag :capture_log
   test "returns an error diagnostic, instead of crashing, when more than one appup file matches the target version" do
     File.mkdir_p!(@appup_dir)
     File.write!(Path.join(@appup_dir, "0.1.0_to_#{@version}.appup"), "{}.")
