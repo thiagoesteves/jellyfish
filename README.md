@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/jellyfish-logo-dark.svg">
+    <img src="assets/jellyfish-logo-light.svg" alt="Jellyfish logo" width="120">
+  </picture>
+</p>
+
 # Jellyfish
 
 > Simplifying Hot-Upgrades for Elixir Applications
