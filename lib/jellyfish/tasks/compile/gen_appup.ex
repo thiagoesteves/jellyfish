@@ -47,23 +47,33 @@ defmodule Mix.Tasks.Compile.GenAppup do
       output_dir: "#{build_path}/#{Mix.env()}/rel/#{release_name}/"
     }
 
-    :ok = trigger_gen_appup(app_name, opts)
-
     dependencies = Helper.prod_dependencies(Mix.Project.config()[:deps])
 
-    # Generate dependencies appup (only once per library)
-    Enum.each(dependencies, fn dep_app ->
-      if Cache.first_run_gen_appup?(dep_app) do
-        :ok = trigger_gen_appup(app_name, %{opts | app: dep_app, type: :dependency})
-      end
-    end)
-
-    :ok
+    with :ok <- trigger_gen_appup(app_name, opts) do
+      trigger_deps_gen_appup(app_name, opts, dependencies)
+    end
   end
 
   ### ==========================================================================
   ### Private functions
   ### ==========================================================================
+
+  # Generate dependencies appup (only once per library)
+  defp trigger_deps_gen_appup(app_name, opts, dependencies) do
+    Enum.reduce_while(dependencies, :ok, fn dep_app, :ok ->
+      result =
+        if Cache.first_run_gen_appup?(dep_app) do
+          trigger_gen_appup(app_name, %{opts | app: dep_app, type: :dependency})
+        else
+          :ok
+        end
+
+      case result do
+        :ok -> {:cont, :ok}
+        error -> {:halt, error}
+      end
+    end)
+  end
 
   defp trigger_gen_appup(root_app_name, %{app: target_app} = opts) do
     padded_name = String.pad_trailing("[#{target_app}]", @pad_app_name)
@@ -102,8 +112,19 @@ defmodule Mix.Tasks.Compile.GenAppup do
       {:error, reason} ->
         Mix.shell().info("#{padded_name} error checking appup files reason: #{inspect(reason)}")
 
-        {:error, reason}
+        {:error,
+         [diagnostic(:error, "Failed to generate appup for #{target_app}: #{inspect(reason)}")]}
     end
+  end
+
+  defp diagnostic(severity, message, file \\ Mix.Project.project_file()) do
+    %Mix.Task.Compiler.Diagnostic{
+      compiler_name: "GenAppup",
+      file: file,
+      position: nil,
+      severity: severity,
+      message: message
+    }
   end
 
   defp do_gen_appup(%__MODULE__{

@@ -28,25 +28,35 @@ defmodule Mix.Tasks.Compile.CopyAppup do
     app_name = Mix.Project.config()[:app]
     release_path = Keyword.fetch!(args, :release_path)
 
-    # Trigger application copy
-    :ok = trigger_copy(release_path, app_name, version)
-
     dependencies = Helper.prod_dependencies(Mix.Project.config()[:deps])
 
-    # Trigger dependencies copy (only once per library)
-    Enum.each(dependencies, fn library ->
-      with true <- Cache.first_run_copy_appup?(library),
-           %{version: dep_version} <- Cache.get_app(library) do
-        :ok = trigger_copy(release_path, library, dep_version)
-      end
-    end)
-
-    :ok
+    with :ok <- trigger_copy(release_path, app_name, version) do
+      trigger_deps_copy(release_path, dependencies)
+    end
   end
 
   ### ==========================================================================
   ### Private functions
   ### ==========================================================================
+
+  # Trigger dependencies copy (only once per library)
+  defp trigger_deps_copy(release_path, dependencies) do
+    Enum.reduce_while(dependencies, :ok, fn library, :ok ->
+      result =
+        with true <- Cache.first_run_copy_appup?(library),
+             %{version: dep_version} <- Cache.get_app(library) do
+          trigger_copy(release_path, library, dep_version)
+        else
+          _ -> :ok
+        end
+
+      case result do
+        :ok -> {:cont, :ok}
+        error -> {:halt, error}
+      end
+    end)
+  end
+
   defp trigger_copy(release_path, app_name, version) do
     appup_source = "rel/appups/#{app_name}"
 
