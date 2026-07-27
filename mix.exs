@@ -58,7 +58,8 @@ defmodule Jellyfish.MixProject do
     [
       main: "Jellyfish",
       source_ref: "v#{@version}",
-      extras: ["README.md", "LICENSE.md", "CHANGELOG.md"]
+      extras: ["README.md", "LICENSE.md", "CHANGELOG.md"],
+      skip_undefined_reference_warnings_on: ["CHANGELOG.md"]
     ]
   end
 
