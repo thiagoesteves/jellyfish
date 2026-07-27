@@ -1,7 +1,7 @@
 defmodule Jellyfish.MixProject do
   use Mix.Project
 
-  @version "0.2.4"
+  @version "0.2.5"
 
   def project do
     [
@@ -9,7 +9,6 @@ defmodule Jellyfish.MixProject do
       version: @version,
       elixir: "~> 1.16",
       name: "Jellyfish",
-      description: "Elixir library able to generate appup files for hot code reloading",
       source_url: "https://github.com/thiagoesteves/jellyfish",
       homepage_url: "https://github.com/thiagoesteves/jellyfish",
       start_permanent: Mix.env() == :prod,
@@ -31,7 +30,7 @@ defmodule Jellyfish.MixProject do
 
   defp description do
     """
-    Build appup files for your Elixir app release
+    Generates appup files for zero-downtime Elixir hot code upgrades
     """
   end
 

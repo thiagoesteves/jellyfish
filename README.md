@@ -72,7 +72,9 @@ Once the `mix release` is called, if a previous version is found, the appup file
 Jellyfish generates appup files for both your application code and its dependencies. This allows you to upgrade third-party libraries at runtime alongside your own code changes.
 
 > [!WARNING]
-> Not all code changes are safe for hot-upgrades. Before performing a hot-upgrade, Check if the dependency supports hot-upgrades between versions, review the changelog for structural changes (e.g., process state modifications, API changes), check stateful processes like GenServers, Agents, etc that may require special handling.
+> Not all code changes are safe for hot-upgrades.
+> Before performing a hot-upgrade, check if the dependency supports hot-upgrades between versions, review the changelog for structural changes (e.g., process state modifications, API changes), and check stateful processes like GenServers, Agents, etc. that may require special handling.
+> You can do this analysis yourself, or ask an LLM-based coding assistant to review the diff and changelog between the two versions and flag anything that looks unsafe for a hot-upgrade - but either way, someone should look before you ship it.
 
 # Appup file
 
