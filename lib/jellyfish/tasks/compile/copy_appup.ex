@@ -19,7 +19,7 @@ defmodule Mix.Tasks.Compile.CopyAppup do
   ### ==========================================================================
 
   @impl true
-  @spec run(any()) :: :ok | {:error, [Mix.Task.Compiler.Diagnostic.t(), ...]}
+  @spec run(term()) :: :ok | {:error, [Mix.Task.Compiler.Diagnostic.t(), ...]}
   def run(args) do
     # make sure loadpaths are updated
     Mix.Task.run("loadpaths", [])

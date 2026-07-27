@@ -5,16 +5,29 @@ defmodule Jellyfish.Releases.Appup do
   Copied and/or modified from https://github.com/bitwalker/distillery/blob/master/lib/distillery/releases/appups.ex
   """
 
+  @typedoc "An OTP application name."
   @type app :: atom
+
+  @typedoc "A version string, such as `\"0.0.1\"`."
   @type version_str :: String.t()
+
+  @typedoc "A filesystem path to a release or build artifact directory."
   @type path_str :: String.t()
+
+  @typedoc "The purge mode used for a `:update` instruction."
   @type change :: :soft | {:advanced, [term]}
+
+  @typedoc "Modules that must be loaded/updated before the module being instructed."
   @type dep_mods :: [module]
 
-  # Appup versions can be a version string as a charlist,
-  # or a regular expression as a binary. The regex must match
-  # the entire version string for an application, or it is rejected.
+  @typedoc """
+  An appup version, as expected by the `.appup` format: either a version
+  string as a charlist, or a regular expression as a binary. The regex must
+  match the entire version string for an application, or it is rejected.
+  """
   @type appup_ver :: charlist | binary
+
+  @typedoc "A single upgrade/downgrade instruction, as defined by the Erlang appup format."
   @type instruction ::
           {:add_module, module}
           | {:delete_module, module}
@@ -28,8 +41,14 @@ defmodule Jellyfish.Releases.Appup do
           | {:restart_application, atom}
           | :restart_new_emulator
           | :restart_emulator
+
+  @typedoc "The instructions to run, per source version, when upgrading."
   @type upgrade_instructions :: [{appup_ver, instruction}]
+
+  @typedoc "The instructions to run, per source version, when downgrading."
   @type downgrade_instructions :: [{appup_ver, instruction}]
+
+  @typedoc "The contents of a generated `.appup` file: `{new_version, upgrades, downgrades}`."
   @type appup :: {appup_ver, upgrade_instructions, downgrade_instructions}
 
   @doc """

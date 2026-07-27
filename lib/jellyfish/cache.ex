@@ -40,9 +40,11 @@ defmodule Jellyfish.Cache do
   Stores application version information in the process cache.
 
   The version is stored as a map with a `:version` key, allowing for future
-  extension with additional metadata if needed.
+  extension with additional metadata if needed. Returns whatever was
+  previously cached for `app` (as `Process.put/2` does), or `nil` if this is
+  the first time `app` is stored.
   """
-  @spec store_app_version(atom() | String.t(), String.t()) :: %{version: String.t()}
+  @spec store_app_version(atom() | String.t(), String.t()) :: %{version: String.t()} | nil
   def store_app_version(app, version) do
     Process.put(app, %{version: version})
   end
