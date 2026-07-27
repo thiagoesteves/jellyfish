@@ -94,6 +94,9 @@ jobs:
       - name: Run mix deps.unlock
         run: mix deps.unlock --check-unused
 
+      - name: Mix Audit
+        run: mix deps.audit
+
       - name: Ex Doc
         run: mix docs --failed
 
